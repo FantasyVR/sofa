@@ -80,8 +80,8 @@ protected:
     * if @sa d_emitButtonEvent is set to true, event will be fired by this method if button is pressed or released
     */
     void updateButtonStates();
-    
-
+    /// 将haptic force 写入到文件中去
+    void writeHapticForce2File();
 public:
     //Input Data
     Data< std::string > d_deviceName; ///< Name of device Configuration
@@ -104,7 +104,7 @@ public:
     Data<Vector6> d_angle; ///< Angluar values of joint (rad)
     Data<bool> d_button_1; ///< Button state 1
     Data<bool> d_button_2; ///< Button state 2
-    
+    Data<Vec3d> d_force; /// < computed haptic force
     // Pointer to the forceFeedBack component
     ForceFeedback::SPtr m_forceFeedback;
     // link to the forceFeedBack component, if not set will search through graph and take first one encountered
@@ -112,11 +112,15 @@ public:
 
     /// This static bool is used to know if HD scheduler is already running. No mechanism provided by Hd lib.
     inline static bool s_schedulerRunning = false;
+    // 存储haptic 内容到文件中
+    sofa::core::objectmodel::DataFileName hapticlogFilename;
+    Data<bool> writeHapticForce; ///< write edge topology
 
 protected:
     // Pointer to the Geomagic visual model to draw device in scene
     std::unique_ptr<GeomagicVisualModel> m_GeomagicVisualModel;
-   
+    std::ofstream* outfile;
+
 public:
     ///These data are written by the omni they cnnot be accessed in the simulation loop
     struct DeviceData

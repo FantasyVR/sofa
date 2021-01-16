@@ -33,7 +33,7 @@
 
 #include <chrono>
 #include <thread>
-
+#include <fstream>
 namespace sofa::component::controller
 {
     
@@ -95,13 +95,11 @@ HDCallbackCode HDCALLBACK stateCallback(void * userData)
     // button status
     hdGetIntegerv(HD_CURRENT_BUTTONS, &driver->m_hapticData.buttonState);
 
-
     Vector3 currentForce;
     if (driver->m_forceFeedback)
     {
         Vector3 pos(driver->m_hapticData.transform[12+0]*0.1,driver->m_hapticData.transform[12+1]*0.1,driver->m_hapticData.transform[12+2]*0.1);
         Vector3 pos_in_world = driver->d_positionBase.getValue() + driver->d_orientationBase.getValue().rotate(pos*driver->d_scale.getValue());
-
         driver->m_forceFeedback->computeForce(pos_in_world[0],pos_in_world[1],pos_in_world[2], 0, 0, 0, 0, currentForce[0], currentForce[1], currentForce[2]);
         driver->m_isInContact = false;
         for (int i=0; i<3; i++)
@@ -143,7 +141,8 @@ HDCallbackCode HDCALLBACK stateCallback(void * userData)
     omni_force[0] = force_in_omni[0];
     omni_force[1] = force_in_omni[1];
     omni_force[2] = force_in_omni[2];
-
+    
+    driver->d_force.setValue(Vec3(omni_force[0], omni_force[0], omni_force[0]));
     hdSetDoublev(HD_CURRENT_FORCE, omni_force);
 
     hdEndFrame(driver->m_hHD);
@@ -174,6 +173,8 @@ GeomagicDriver::GeomagicDriver()
     , m_simulationStarted(false)
     , m_isInContact(false)
     , m_hHD(HD_INVALID_HANDLE)
+    , writeHapticForce(initData(&writeHapticForce, (bool)true, "writeHapticForce", "write haptic force"))
+    , hapticlogFilename(initData(&hapticlogFilename, "filename", "output haptic device info file name"))
 {
     this->f_listening.setValue(true);
     m_forceFeedback = nullptr;
@@ -185,6 +186,11 @@ GeomagicDriver::GeomagicDriver()
 GeomagicDriver::~GeomagicDriver()
 {
     clearDevice();
+    if (outfile)
+    {
+        outfile->close();
+        delete outfile;
+    }
 }
 
 
@@ -211,6 +217,18 @@ void GeomagicDriver::init()
     // 2- init device and Hd scheduler
     if (d_manualStart.getValue() == false)
         initDevice();
+    if (writeHapticForce.getValue() == true)
+    {
+        std::string filename = hapticlogFilename.getFullPath();
+        outfile = new std::ofstream(filename.c_str());
+        if (!outfile->is_open())
+        {
+            msg_error() << "Error creating file " << filename;
+            delete outfile;
+            outfile = nullptr;
+            return;
+        }
+    }
 }
 
 
@@ -456,6 +474,12 @@ void GeomagicDriver::updateButtonStates()
     }  
 }
 
+void GeomagicDriver::writeHapticForce2File()
+{
+    Vec3 force = d_force.getValue();
+    *outfile << force[0] << "," << force[1] << "," << force[2] << std::endl;
+}
+
 
 void GeomagicDriver::draw(const sofa::core::visual::VisualParams* vparams)
 {
@@ -480,6 +504,13 @@ void GeomagicDriver::draw(const sofa::core::visual::VisualParams* vparams)
         m_GeomagicVisualModel->drawDevice(d_button_1.getValue(), d_button_2.getValue());
 
     vparams->drawTool()->restoreLastState();
+    Vec3 force = d_force.getValue();
+    msg_info() << "haptic force: [" << force[0] << "," << force[1] << "," << force[2] << "]\n";
+    //msg_info_withfile("Haptic Force", "./hapticforce.txt", 100);
+    if (writeHapticForce.getValue() == true)
+    {
+        writeHapticForce2File();
+    }
 }
 
 
