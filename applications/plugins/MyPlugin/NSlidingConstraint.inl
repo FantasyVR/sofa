@@ -123,13 +123,15 @@ void NSlidingConstraint<DataTypes>::buildConstraintMatrix(const core::Constraint
         MatrixDeriv& c1 = *c1_d.beginEdit();
         MatrixDeriv& c2 = *c2_d.beginEdit();
 
+        auto ele1_index = c1->m1;
+        auto ele2_index = c2->m2;
+
         m_dirAxe = c->norm;
         m_dirAxe.normalize();
 
         // projection of the point on the axis
         Real r = (c->P - c->Q) * m_dirAxe;
         const Deriv proj = c->Q + m_dirAxe * r;
-        Real ab = 1.0;
 
         // We move the constraint point onto the projection
         m_dirProj = c->P - proj;
@@ -141,12 +143,20 @@ void NSlidingConstraint<DataTypes>::buildConstraintMatrix(const core::Constraint
 
         m_cid = cIndex;
         cIndex += 2;
+        // Construct Local coordinate frame and write into system matrix ?
+        // No thrid constraint like sliding constraint, because we didn't want to constraint the motion 
+        // on m_dirAxe direction
+        MatrixDerivRowIterator c1_it = c1.writeLine(m_cid);
+        c1.addCol(ele1_index, m_dirProj);
+        c1_it = c1.writeLine(m_cid+1);
+        c1.addCol(ele1_index, m_dirOrtho);
+        MatrixDerivRowIterator c2_it = c2.writeLine(m_cid);
+        c2.addCol(ele2_index, -m_dirProj);
+        c2_it = c2.writeLine(m_cid + 1);
+        c2.addCol(ele2_index, -m_dirOrth0);
 
-        //TODO: Construct Local coordinate frame and write into system matrix ?
-
-
-
-
+        c1_d.endEdit();
+        c2_d.endEdit();
     }
 }
 
@@ -157,14 +167,6 @@ void NSlidingConstraint<DataTypes>::getConstraintViolation(const core::Constrain
 {
     v->set(m_cid, m_dist);
     v->set(m_cid+1, 0.0);
-
-    if(m_thirdConstraint)
-    {
-        if(m_thirdConstraint>0)
-            v->set(m_cid+2, -m_thirdConstraint);
-        else
-            v->set(m_cid+2, m_thirdConstraint);
-    }
 }
 
 
@@ -175,29 +177,18 @@ void NSlidingConstraint<DataTypes>::getConstraintResolution(const ConstraintPara
 {
     resTab[offset++] = new BilateralConstraintResolution();
     resTab[offset++] = new BilateralConstraintResolution();
-
-    if(m_thirdConstraint)
-        resTab[offset++] = new UnilateralConstraintResolution();
 }
 
 
 template<class DataTypes>
 void NSlidingConstraint<DataTypes>::storeLambda(const ConstraintParams* /*cParams*/, sofa::core::MultiVecDerivId /*res*/, const sofa::defaulttype::BaseVector* lambda)
 {
-    Real lamb1,lamb2, lamb3;
+    Real lamb1,lamb2;
 
     lamb1 = lambda->element(m_cid);
     lamb2 = lambda->element(m_cid+1);
 
-    if(m_thirdConstraint)
-    {
-        lamb3 = lambda->element(m_cid+2);
-        d_force.setValue( m_dirProj* lamb1 + m_dirOrtho * lamb2 + m_dirAxe * lamb3);
-    }
-    else
-    {
-        d_force.setValue( m_dirProj* lamb1 + m_dirOrtho * lamb2 );
-    }
+    d_force.setValue( m_dirProj* lamb1 + m_dirOrtho * lamb2 );
 }
 
 template<class DataTypes>
