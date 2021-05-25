@@ -123,8 +123,8 @@ void NSlidingConstraint<DataTypes>::buildConstraintMatrix(const core::Constraint
         MatrixDeriv& c1 = *c1_d.beginEdit();
         MatrixDeriv& c2 = *c2_d.beginEdit();
 
-        auto ele1_index = c1->m1;
-        auto ele2_index = c2->m2;
+        int ele1_index = c->m1;
+        int ele2_index = c->m2;
 
         m_dirAxe = c->norm;
         m_dirAxe.normalize();
@@ -147,13 +147,13 @@ void NSlidingConstraint<DataTypes>::buildConstraintMatrix(const core::Constraint
         // No thrid constraint like sliding constraint, because we didn't want to constraint the motion 
         // on m_dirAxe direction
         MatrixDerivRowIterator c1_it = c1.writeLine(m_cid);
-        c1.addCol(ele1_index, m_dirProj);
+        c1_it.addCol(ele1_index, m_dirProj);
         c1_it = c1.writeLine(m_cid+1);
-        c1.addCol(ele1_index, m_dirOrtho);
+        c1_it.addCol(ele1_index, m_dirOrtho);
         MatrixDerivRowIterator c2_it = c2.writeLine(m_cid);
-        c2.addCol(ele2_index, -m_dirProj);
+        c2_it.addCol(ele2_index, -m_dirProj);
         c2_it = c2.writeLine(m_cid + 1);
-        c2.addCol(ele2_index, -m_dirOrth0);
+        c2_it.addCol(ele2_index, -m_dirOrtho);
 
         c1_d.endEdit();
         c2_d.endEdit();
