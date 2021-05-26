@@ -1,6 +1,15 @@
 #include "initMyPlugin.h"
 
-extern "C" {
+namespace sofa::component
+{
+    extern "C" {
+        SOFA_MyPlugin_API void initExternalModule();
+        SOFA_MyPlugin_API const char* getModuleName();
+        SOFA_MyPlugin_API const char* getModuleVersion();
+        SOFA_MyPlugin_API const char* getModuleLicense();
+        SOFA_MyPlugin_API const char* getModuleDescription();
+        SOFA_MyPlugin_API const char* getModuleComponentList();
+    }
     void initExternalModule()
     {
         // Here is the place to write initialisation code, that will be executed
