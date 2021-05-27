@@ -37,9 +37,16 @@ using namespace defaulttype;
 using namespace sofa::helper;
 using simulation::Node;
 
-Creator<sofa::core::collision::Contact::Factory, NeedleContact<PointCollisionModel<sofa::defaulttype::Vec3Types>, PointCollisionModel<sofa::defaulttype::Vec3Types>> > PointPointNeedleContactClass("NeedleContact",true);
-Creator<sofa::core::collision::Contact::Factory, NeedleContact<SphereCollisionModel<sofa::defaulttype::Vec3Types>, PointCollisionModel<sofa::defaulttype::Vec3Types>> > SpherePointNeedleContactClass("NeedleContact", true);
-Creator<sofa::core::collision::Contact::Factory, NeedleContact<SphereCollisionModel<sofa::defaulttype::Vec3Types>, LineCollisionModel<sofa::defaulttype::Vec3Types>> > SphereLineNeedleContactClass("NeedleContact", true);
+Creator<sofa::core::collision::Contact::Factory, NeedleContact<
+	PointCollisionModel<sofa::defaulttype::Vec3Types>, PointCollisionModel<sofa::defaulttype::Vec3Types>> > PointPointNeedleContactClass("NeedleContact",true);
+Creator<sofa::core::collision::Contact::Factory, NeedleContact<
+	PointCollisionModel<sofa::defaulttype::Vec3Types>, SphereCollisionModel<sofa::defaulttype::Vec3Types>> > SpherePointNeedleContactClass("NeedleContact", true);
+Creator<sofa::core::collision::Contact::Factory, NeedleContact<
+	LineCollisionModel<sofa::defaulttype::Vec3Types>, SphereCollisionModel<sofa::defaulttype::Vec3Types>> > SphereLineNeedleContactClass("NeedleContact", true);
+Creator<sofa::core::collision::Contact::Factory, NeedleContact<
+	SphereCollisionModel<sofa::defaulttype::Vec3Types>, PointCollisionModel<sofa::defaulttype::Vec3Types>> > PointSphereNeedleContactClass("NeedleContact", true);
+Creator<sofa::core::collision::Contact::Factory, NeedleContact<
+	SphereCollisionModel<sofa::defaulttype::Vec3Types>, LineCollisionModel<sofa::defaulttype::Vec3Types>> > LineSphereNeedleContactClass("NeedleContact", true);
 
 
 } // namespace collision
